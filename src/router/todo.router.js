@@ -5,7 +5,7 @@ import { createTodo,getTodo,updateTodo,deleteTodo } from "../controller/todo.con
 export const todoRouter = Router();
 
 
-todoRouter.post("/",createTodo);
-todoRouter.get("/",getTodo);
-todoRouter.put("/update",updateTodo);
-todoRouter.delete("/delete",deleteTodo);
+todoRouter.post("/create",createTodo);
+todoRouter.get("/get/:_id",getTodo);
+todoRouter.put("/update/:_id",updateTodo);
+todoRouter.delete("/delete/:_id",deleteTodo);
