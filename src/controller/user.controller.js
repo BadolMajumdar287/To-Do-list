@@ -37,7 +37,25 @@ export const userLogin = async (req,res) => {
 
   try {
 
+    const { email,password } = req.body;
+
+     const userEmail = await userModel.findOne({email});
+    
+     if(!userEmail){
+
+     return res.status(404).json({message: "USER EMAIL IS NOT FOUND"});
+
+     }
          
+     const userPassword = await userModel.findOne({password});
+
+     if(!userPassword){
+
+    return res.status(404).json({message: "USER PASSWORD IS NOT Found"});
+
+     }
+  
+     res.status(200).json({message: "USER IS LOGIN"})
     
   } catch (error) {
     
