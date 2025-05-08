@@ -120,7 +120,34 @@ export const updateTodo = async (req,res) => {
 
 export const deleteTodo = async (req,res) => {
 
+         try {
 
+          const { _id } = req.params;
+
+          const user = await userModel.findOne({ _id });
+
+          if(!user){
+           
+          return  res.status(404).json({message: "USER NOT FOUND"});
+
+          }
+
+          const todoDelete = await todoModel.deleteOne({ userId: user._id});
+
+          if(!todoDelete){
+
+            return res.status(404).json({message: "NOT DELETE USER"});
+
+          }
+
+          res.status(200).json(todoDelete);
+          
+         } catch (error) {
+
+          console.log(error);
+          res.status(500).json({message: "INTERNAL SERVER ERROR"});
+          
+         }
 
 
 
