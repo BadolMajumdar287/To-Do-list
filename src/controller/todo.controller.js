@@ -79,7 +79,34 @@ export const  getTodo = async (req,res) => {
 
 export const updateTodo = async (req,res) => {
 
+      try {
 
+        const { _id } = req.params;
+        const{ title,completed} = req.body;
+
+          const user = await userModel.findOne({ _id });
+            
+          if(!user){
+            return res.status(400).json({message: "USER NOT FOUND"});
+          }
+
+          const totoTaskUpdate = await todoModel.updateOne(
+            {userId: user._id},
+            {$set: {title,completed}}
+          );
+
+          if(!totoTaskUpdate){
+            return res.status(400).json({message: "NOT UPDATE TOTO"});
+          }
+
+           res.status(200).json(totoTaskUpdate);
+        
+      } catch (error) {
+        
+        console.log(error);
+        res.status(500).json({message: "INTERNAL SERVER ERROR"});
+
+      }
 
 
 
