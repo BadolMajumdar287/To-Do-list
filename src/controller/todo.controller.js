@@ -1,31 +1,72 @@
 
 
+import { response } from "../lib/response.js";
 import { todoModel } from "../model/todo.model.js"
 import { userModel } from "../model/user.model.js";
 
-export const createTodo = async (req,res) => {
+export const createTodo = async (req, res) => {
 
-   try {
+  try {
 
-    const {userId,title,completed} = req.body;
-    
-    if(!userId && !title){
-    
-        res.status(404).json({messege: "NOT FOUND"});
+    const { userId, title, } = req.body;
+
+    if (!userId && !title) response(res, 403, { error: "Missing required params" })
+
+
+    const todoTask = await todoModel.create({ userId, title });
+
+    response(res, 200, { message: "Todo Created", todoTask })
+
+  } catch (error) {
+
+    console.error(error);
+    response(res, 500, { error: "Internal Server Error!" })
+
+  }
+
+}
+
+
+
+
+
+export const getTodo = async (req, res) => {
+
+  try {
+
+    const { _id } = req.params
+
+    const user = await userModel.findOne({ _id });
+
+    if (!user) {
+
+      return res.status(404).json({ message: "USER NOT FOUND", });
 
     }
 
-    const todoTask = await todoModel.create({userId,title,completed});
+    const todoTask = await todoModel.find({ userId: user._id });
+
+    if (!todoTask) {
+
+      return res.status(404).json({ message: "TODO NOT FOUND" });
+
+    }
 
     res.status(200).json(todoTask);
-    
-    
-   } catch (error) {
-    
-        console.error(error);
-        res.status(500).json({messege: "error messege"});
 
-   }
+
+
+
+  } catch (error) {
+
+    console.error(error);
+    res.status(500).json({ messege: "error messege" });
+
+  }
+
+
+
+
 
 }
 
@@ -33,80 +74,36 @@ export const createTodo = async (req,res) => {
 
 
 
-export const  getTodo = async (req,res) => {
+export const updateTodo = async (req, res) => {
 
-    try {
+  try {
 
-       const { _id } = req.params
+    const { _id } = req.params;
+    const { title, completed } = req.body;
 
-       const user = await userModel.findOne({ _id });
+    const user = await userModel.findOne({ _id });
 
-       if(!user){
-           
-        return res.status(404).json({message: "USER NOT FOUND",});
-
-       }
-
-       const todoTask = await todoModel.find({ userId:user._id});
-
-       if(!todoTask){
-
-        return res.status(404).json({message: "TODO NOT FOUND"});
-
-       }
-
-       res.status(200).json(todoTask);
-
-
-        
-        
-    } catch (error) {
-
-        console.error(error);
-        res.status(500).json({messege: "error messege"});
-        
+    if (!user) {
+      return res.status(400).json({ message: "USER NOT FOUND" });
     }
 
+    const totoTaskUpdate = await todoModel.updateOne(
+      { userId: user._id },
+      { $set: { title, completed } }
+    );
 
+    if (!totoTaskUpdate) {
+      return res.status(400).json({ message: "NOT UPDATE TOTO" });
+    }
 
+    res.status(200).json(totoTaskUpdate);
 
+  } catch (error) {
 
-}
+    console.log(error);
+    res.status(500).json({ message: "INTERNAL SERVER ERROR" });
 
-
-
-
-
-export const updateTodo = async (req,res) => {
-
-      try {
-
-        const { _id } = req.params;
-        const{ title,completed} = req.body;
-
-          const user = await userModel.findOne({ _id });
-            
-          if(!user){
-            return res.status(400).json({message: "USER NOT FOUND"});
-          }
-
-          const totoTaskUpdate = await todoModel.updateOne(
-            {userId: user._id},
-            {$set: {title,completed}}
-          );
-
-          if(!totoTaskUpdate){
-            return res.status(400).json({message: "NOT UPDATE TOTO"});
-          }
-
-           res.status(200).json(totoTaskUpdate);
-        
-      } catch (error) {
-        
-        console.log(error);
-        res.status(500).json({message: "INTERNAL SERVER ERROR"});
-
-      }
+  }
 
 
 
@@ -118,36 +115,36 @@ export const updateTodo = async (req,res) => {
 
 
 
-export const deleteTodo = async (req,res) => {
+export const deleteTodo = async (req, res) => {
 
-         try {
+  try {
 
-          const { _id } = req.params;
+    const { _id } = req.params;
 
-          const user = await userModel.findOne({ _id });
+    const user = await userModel.findOne({ _id });
 
-          if(!user){
-           
-          return  res.status(404).json({message: "USER NOT FOUND"});
+    if (!user) {
 
-          }
+      return res.status(404).json({ message: "USER NOT FOUND" });
 
-          const todoDelete = await todoModel.deleteOne({ userId: user._id});
+    }
 
-          if(!todoDelete){
+    const todoDelete = await todoModel.deleteOne({ userId: user._id });
 
-            return res.status(404).json({message: "NOT DELETE USER"});
+    if (!todoDelete) {
 
-          }
+      return res.status(404).json({ message: "NOT DELETE USER" });
 
-          res.status(200).json(todoDelete);
-          
-         } catch (error) {
+    }
 
-          console.log(error);
-          res.status(500).json({message: "INTERNAL SERVER ERROR"});
-          
-         }
+    res.status(200).json(todoDelete);
+
+  } catch (error) {
+
+    console.log(error);
+    res.status(500).json({ message: "INTERNAL SERVER ERROR" });
+
+  }
 
 
 
