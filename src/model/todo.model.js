@@ -1,20 +1,21 @@
-import { model,Schema } from "mongoose";
+import { model, Schema } from "mongoose";
 
 
 const todoSchema = new Schema({
 
-         userId: {
-            type:Schema.Types.ObjectId,
-            ref: "users",
-         },
-         title: {
-            type: String,
-            required: true,
-         },
-         completed: {
-            type: Boolean,
-            default: false,
-         }
+   userId: {
+      type: Schema.Types.ObjectId,
+      ref: "users",
+      required: true,
+   },
+   title: {
+      type: String,
+      required: true,
+   },
+   completed: {
+      type: Boolean,
+      default: false,
+   }
 
 
 });
@@ -22,4 +23,4 @@ const todoSchema = new Schema({
 
 
 
-export const todoModel = model("todos",todoSchema);
+export const todoModel = model("todo", todoSchema);
