@@ -11,9 +11,11 @@
     "dev": "nodemon ."
   },
   "dependencies": {
+    "bcrypt": "^5.1.1",
+    "cookie-parser": "^1.4.7",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
-    "mongoose": "^8.14.1"
+    "mongoose": "^8.14.2"
   },
   "devDependencies": {
     "nodemon": "^3.1.10"

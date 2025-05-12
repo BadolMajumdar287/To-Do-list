@@ -4,6 +4,72 @@
 //  */
 
 import { userModel } from "../model/user.model.js"
+import bcrypt from "bcrypt";
+
+
+
+export const getCurrentUser = async (req,res) => {
+
+    try {
+
+       const cookie = req.cookies
+
+      const user = await userModel.findById(cookie['session']);
+
+      if(!user){
+
+    return  res.status(400).json({message: "Bad Request"});
+
+      }
+
+
+       res.status(200).json({ message: "Current user", user })
+        
+      
+    } catch (error) {
+
+      console.log(error);
+      res.status(500).json({message: "INTERNAL SERVER ERROR"});
+      
+    }
+    
+    
+
+}; 
+
+
+
+
+
+
+
+export const userLogout = async (req,res) => {
+
+         try {
+         
+          
+          res.cookie('session', '', { maxAge: 0 })
+           return res.status(200).json({ message: "Logout successful", })
+          
+         } catch (error) {
+
+          console.log(error);
+          res.status(500).json({message: "INTERNAL SERVER ERROR"});
+
+         }
+
+
+
+};
+
+
+
+
+
+
+
+
+
 
 export const userCreate = async (req,res) => {
 
@@ -15,7 +81,13 @@ export const userCreate = async (req,res) => {
       return res.status(400).json({ message: "NOT found"});
     }
       
-    const user = await userModel.create({name,email,password});
+
+
+    const salt = bcrypt.genSaltSync(10);
+    const hash = bcrypt.hashSync(password, salt);
+
+
+    const user = await userModel.create({name,email,password: hash});
      
     res.status(200).json({message: "user create",user})
 
@@ -39,22 +111,26 @@ export const userLogin = async (req,res) => {
 
     const { email,password } = req.body;
 
-     const userEmail = await userModel.findOne({email});
+     const user = await userModel.findOne({email});
     
-     if(!userEmail){
+     if(!user){
 
      return res.status(404).json({message: "USER EMAIL IS NOT FOUND"});
 
      }
          
-     const userPassword = await userModel.findOne({password});
+     const isMatched = bcrypt.compareSync(password, user.password);
 
-     if(!userPassword){
-
-    return res.status(404).json({message: "USER PASSWORD IS NOT Found"});
+     if(!isMatched){
+ 
+      return res.status(404).json({message: "Password is not valid"})
 
      }
-  
+
+     res.cookie('session',user._id, { maxAge: 60 * 60 * 24 * 1000 * 3, httpOnly: true, secure: process.env.NODE_ENV === 'production' })
+
+
+
      res.status(200).json({message: "USER IS LOGIN"})
     
   } catch (error) {
