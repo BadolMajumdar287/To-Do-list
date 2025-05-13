@@ -5,6 +5,7 @@
 
 import { userModel } from "../model/user.model.js"
 import bcrypt from "bcrypt";
+import { response } from "../lib/response.js";
 
 
 
@@ -71,17 +72,20 @@ export const userLogout = async (req,res) => {
 
 
 
-export const userCreate = async (req,res) => {
+export const RegisterUser = async (req,res) => {
 
   try {
 
+    
+
     const {name,email,password} = req.body
      
-    if (!name || !email || !password) {
-      return res.status(400).json({ message: "NOT found"});
-    }
+    if (!name || !email || !password) return response(res,403,{error: "Missing Required Params"})
       
+    
+    const existingUser = await userModel.findOne({email})
 
+    if(existingUser) return response(res,403,{error: "Email Already Use In"});
 
     const salt = bcrypt.genSaltSync(10);
     const hash = bcrypt.hashSync(password, salt);
@@ -89,13 +93,12 @@ export const userCreate = async (req,res) => {
 
     const user = await userModel.create({name,email,password: hash});
      
-    res.status(200).json({message: "user create",user})
-
+   return response(res,200,{message: "User Create Succesfully"},user);
 
   } catch (error) {
 
     console.error(error);
-    res.status(500).json({message: "INTERNAL SERVER ERROR"});
+    response(res,500,{Error: "Internal Server Error"});
     
   }   
 
