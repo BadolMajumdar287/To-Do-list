@@ -4,9 +4,9 @@
 //  */
 
 import { userModel } from "../model/user.model.js"
-import bcrypt from "bcrypt";
 import { response } from "../lib/response.js";
-
+import { hash,compare } from "../lib/hash.js";
+import { cookieSet } from "../lib/cookie.js";
 
 
 export const getCurrentUser = async (req,res) => {
@@ -17,21 +17,17 @@ export const getCurrentUser = async (req,res) => {
 
       const user = await userModel.findById(cookie['session']);
 
-      if(!user){
-
-    return  res.status(400).json({message: "Bad Request"});
-
-      }
+      if(!user) return response(res,400,{error: "User Not Found"});
 
 
-       res.status(200).json({ message: "Current user", user })
+       return response(res,200,{message: "Current User",user});
         
       
     } catch (error) {
 
       console.log(error);
-      res.status(500).json({message: "INTERNAL SERVER ERROR"});
-      
+      return response(res,500,{error: "Internal Server Error"});
+
     }
     
     
@@ -44,18 +40,19 @@ export const getCurrentUser = async (req,res) => {
 
 
 
-export const userLogout = async (req,res) => {
+export const LogoutUser = async (req,res) => {
 
          try {
          
           
-          res.cookie('session', '', { maxAge: 0 })
-           return res.status(200).json({ message: "Logout successful", })
+          res.cookie('session', '', { maxAge: 0 });
+          return response(res,200,{message: "User logged out successfully."});
           
          } catch (error) {
 
           console.log(error);
-          res.status(500).json({message: "INTERNAL SERVER ERROR"});
+          return response(res,500,{error: "Internal Server Error"});
+
 
          }
 
@@ -80,25 +77,23 @@ export const RegisterUser = async (req,res) => {
 
     const {name,email,password} = req.body
      
-    if (!name || !email || !password) return response(res,403,{error: "Missing Required Params"})
+    if (!name || !email || !password) return response(res,403,{error: "Missing Required Params."});
       
     
-    const existingUser = await userModel.findOne({email})
+    const existingUser = await userModel.findOne({email});
 
-    if(existingUser) return response(res,403,{error: "Email Already Use In"});
+    if(existingUser) return response(res,403,{error: "Email Already Use In."});
 
-    const salt = bcrypt.genSaltSync(10);
-    const hash = bcrypt.hashSync(password, salt);
+      const hashPassword = hash(password);
 
-
-    const user = await userModel.create({name,email,password: hash});
+    const user = await userModel.create({name,email,password: hashPassword});
      
-   return response(res,200,{message: "User Create Succesfully"},user);
+   return response(res,200,{message: "User Registered successfully."},user);
 
   } catch (error) {
 
     console.error(error);
-    response(res,500,{Error: "Internal Server Error"});
+    return response(res,500,{Error: "Registration Failed."});
     
   }   
 
@@ -108,38 +103,29 @@ export const RegisterUser = async (req,res) => {
 
 
 
-export const userLogin = async (req,res) => {
+export const LoginUser = async (req,res) => {
 
   try {
 
     const { email,password } = req.body;
 
-     const user = await userModel.findOne({email});
+     const userEmail = await userModel.findOne({email});
     
-     if(!user){
+     if(!userEmail) return response(res,403,{error: "Missing Required Params Or Email."});
 
-     return res.status(404).json({message: "USER EMAIL IS NOT FOUND"});
-
-     }
          
-     const isMatched = bcrypt.compareSync(password, user.password);
+      const comparePassword = await compare(password,userEmail.password);
 
-     if(!isMatched){
+     if(!comparePassword) return response(res,401,{error: "Password Is Not Found."});
  
-      return res.status(404).json({message: "Password is not valid"})
+       cookieSet(res,userEmail);
 
-     }
-
-     res.cookie('session',user._id, { maxAge: 60 * 60 * 24 * 1000 * 3, httpOnly: true, secure: process.env.NODE_ENV === 'production' })
-
-
-
-     res.status(200).json({message: "USER IS LOGIN"})
+     return response(res,200,{Message: "User Login successfully."});
     
   } catch (error) {
     
     console.error(error);
-    res.status(500).json({message: "INTERNAL SERVER ERROR"});
+    return response(res,500,{message: "User Login Failed"});
 
   }
          
