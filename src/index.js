@@ -3,7 +3,7 @@ import { config } from "dotenv";
 import mongoose from "mongoose";
 
 import { DatabaseConfig } from "./config/mongoose.config.js";
-import { userRouter } from "./router/user.router.js";
+import { userRouter } from "./router/auth.router.js";
 import { todoRouter } from "./router/todo.router.js";
 import cookieParser from "cookie-parser";
 
@@ -11,7 +11,7 @@ import cookieParser from "cookie-parser";
 
 
 config();
-const PORT = process.env.PORT;
+const PORT = '5000';
 const app = express();
 
 
@@ -19,8 +19,8 @@ app.use(express.json());
 app.use(cookieParser());
 
 
-app.use("/user",userRouter);
-app.use("/todo",todoRouter);
+app.use("/user", userRouter);
+app.use("/todo", todoRouter);
 
 DatabaseConfig();
 
@@ -30,6 +30,6 @@ DatabaseConfig();
 
 
 
-app.listen(PORT,() => {
-console.log(`SERVER IS RUN PORT ${PORT}`);
+app.listen(PORT, () => {
+    console.log(`SERVER IS RUN PORT ${PORT}`);
 });
